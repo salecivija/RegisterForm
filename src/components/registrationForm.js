@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import './style.css';
-import { database } from '../firebase';
-import { ref, push, update, child } from 'firebase/database';
+
 
 function RegistrationForm() {
   const [firstName, setFirstName] = useState('');
@@ -52,21 +51,26 @@ function RegistrationForm() {
       dateOfBirth: dateOfBirth,
       languages: languages,
     };
-
-    const databaseRef = ref(database);
-    const newPostRef = push(child(databaseRef, 'posts'));
-    const newPostKey = newPostRef.key;
-    const updates = {};
-    updates['/' + newPostKey] = obj;
-
-    update(databaseRef, updates)
-      .then(() => {
-        console.log('Data submitted successfully');
+  
+    fetch('/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(obj),
+    })
+      .then(response => {
+        if (response.ok) {
+          console.log('Data submitted successfully');
+        } else {
+          throw new Error('Failed to submit data');
+        }
       })
-      .catch((error) => {
+      .catch(error => {
         console.log('Failed to submit data:', error);
       });
   };
+  
 
   const handleDateOfBirthChange = (date) => {
     setDateOfBirth(date);
@@ -80,7 +84,7 @@ function RegistrationForm() {
     <form>
       <div className="container">
         <div className="row">
-          <div className="col-md-6">
+          <div className="col-md-12">
             <div className="form-group">
               <label htmlFor="firstName">First Name</label>
               <input
@@ -189,8 +193,6 @@ function RegistrationForm() {
 					onChange={handleDateOfBirthChange}
 				  />
 				</div>
-			  </div>
-			  <div className="col-md-6">
 				<div className="form-group">
 				  <label htmlFor="username">Username:</label>
 				  <input
@@ -203,9 +205,10 @@ function RegistrationForm() {
 				  />
 				</div>
 			  </div>
+
 			</div>
 			<div className="row">
-			  <div className="col-md-6">
+			  <div className="col-md-12">
 				<button type="submit" className="btn btn-primary" onClick={handleRegister}>
 				  Register
 				</button>
